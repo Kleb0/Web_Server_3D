@@ -26,7 +26,7 @@ const createScene = () => {
     shadowGenerator.useBlurExponentialShadowMap = true;
     shadowGenerator.blurKernel = 64;
     shadowGenerator.useKernelBlur = true;
-    shadowGenerator.darkness = 0; // Make the shadow darker
+    shadowGenerator.darkness = 0; 
 
     // Add a sphere
     const sphere = BABYLON.MeshBuilder.CreateSphere("sphere", { diameter: 2 }, scene);
