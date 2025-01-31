@@ -1,0 +1,10 @@
+{
+    "camera": {
+        "speed": 0.2,
+        "keysUp": [90],     
+        "keysDown": [83],    
+        "keysLeft": [81],   
+        "keysRight": [68],  
+        "angularSensibility": 3000
+    }
+}
