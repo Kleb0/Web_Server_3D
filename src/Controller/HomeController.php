@@ -20,27 +20,29 @@ final class HomeController extends AbstractController
     #[Route('/', name: 'app_home')]
     public function index(): Response
     {
-        return $this->render('home/index.html.twig', [
+        $scriptContent = $this->configLoader->getBabylonScript();
+
+        return $this->render('3Dscene/babylon_scene.html.twig', [
             'controller_name' => 'HomeController',
+            'scriptContent' => json_encode($scriptContent),
+            
             
         ]);
     }
 
-    #[Route('/api/config', name: 'config', methods: ['GET'])]
-    public function getSomeValue(): JsonResponse
-    {    
-        $config = $this->configLoader->getConfig();
-
-        return $this->json([
-            'config' => $config
-        ]);
+    #[Route('/api/config', name: 'api_config', methods: ['GET'])]
+    public function getConfig(): JsonResponse
+    {
+        return $this->json($this->configLoader->getConfig());
     }
 
-
-    #[Route('/scene/babylon', name: 'scene_babylon')]
-    public function babylonScene(): Response
+    #[Route('/api/script', name: 'api_script', methods: ['GET'])]
+    public function getScript(): Response
     {
-        return $this->render('3Dscene/babylon_scene.html.twig', [
+        $scriptContent = $this->configLoader->getBabylonScript();
+
+        return new Response($scriptContent, 200, [
+            'Content-Type' => 'application/javascript',
         ]);
     }
 }

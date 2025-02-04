@@ -10,26 +10,19 @@ const InitializeScene = async() => {
     //     return;
     // }
 
-    // const config = JSON.parse(canvas.getAttribute("data-config"));
-    // console.log(`Following config has been loaded : ${JSON.stringify(config)}`);
+    //we don't need to fetch the config from the API anymore
+    // so we use a config aerray for the camera directly in the babylon script
 
-    let config = null;
-
-    try {
-        const response = await fetch('/api/config');
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+    const config = {
+        camera: {
+            speed: 0.2,
+            keysUp: [90],     // Z
+            keysDown: [83],   // S
+            keysLeft: [81],   // Q
+            keysRight: [68],  // D
+            angularSensibility: 3000
         }
-          
-        const data = await response.json();
-        config = data; 
-        console.log(`The config is: ${JSON.stringify(config)}`);
-          // Debugging: Display the fetched value
-
-      } catch (error) {
-          console.error('Error fetching configuration:', error);
-          return; // Exit if API call fails
-      }
+    };
 
     // Create the Babylon.js engine
     const engine = new BABYLON.Engine(canvas, true);
@@ -46,33 +39,13 @@ const InitializeScene = async() => {
         camera.attachControl(canvas, true);
         
          
-          // Apply camera settings from config
+        // Assign camera settings from config the camera 
           if (config.camera) {
             Object.assign(camera, config.camera);
             console.log("Camera settings applied:", config.camera);
         } else {
             console.warn("No camera config found.");
         }
-
-
-
-        // if (config.camera) {
-        //     for (const key in config.camera) {
-        //         if (Object.prototype.hasOwnProperty.call(config.camera, key)) {
-        //             camera[key] = config.camera[key]; 
-        //         }
-        //     }
-        //     console.log("Configuration de la caméra appliquée :", config.camera);
-        // } else {
-        //     console.warn("Attention : La configuration de la caméra est absente !");
-        // }
-
-        //  // Apply camera settings dynamically from config
-        // for (const key in config.camera) {
-        //     if (config.camera.hasOwnProperty(key)) {
-        //         camera[key] = config.camera[key]; // Dynamically assign the property
-        //     }
-        // }
 
         camera.minz = 1;
         camera.maxz = 1000;
