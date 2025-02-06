@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TEST | Babylon.JS Simple Project</title>
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
-    <!-- define cannon.js as a module -->
     <script src = "https://cdn.babylonjs.com/cannon.js"></script>
 
     <style>
@@ -41,11 +41,20 @@
     <script>
         document.addEventListener("DOMContentLoaded", async function() {
             try {
-                // get the script content from the server
-                const response = await fetch('/api/script');
-                if (!response.ok) throw new Error("Failed to fetch script");
+                // get the script content from the server config via API_config
+                const response = await fetch('/api/config');
+                if (!response.ok) throw new Error("Failed to fetch config");
 
-                const scriptContent = await response.text();
+
+                const config = await response.json();
+                const scriptPath = config.babylonPath;
+
+                if(!scriptPath) throw new Error("No script path found in config");
+
+                const scriptResponse = await fetch(scriptPath);
+                if (!scriptResponse.ok) throw new Error("Failed to fetch script");
+
+                const scriptContent = await scriptResponse.text();
 
                 // create a blob object from the script content
                 const blob = new Blob([scriptContent], { type: 'application/javascript' });

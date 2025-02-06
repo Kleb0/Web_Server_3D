@@ -12,7 +12,7 @@ class ConfigLoader
     public function __construct(string $projectDir)
     {
         $this->configPath = $projectDir . '/src/BabylonJs/config/config.json';
-        $this->babylonPath = $projectDir . '/src/BabylonJs/js/testBlender.js';
+        $this->babylonPath = $projectDir . '/Babylon.js';
     }
 
     public function getConfig(): array
@@ -22,10 +22,16 @@ class ConfigLoader
         }
 
         $configContent = file_get_contents($this->configPath);
-        return json_decode($configContent, true, 512, JSON_THROW_ON_ERROR);
+        $config = json_decode($configContent, true, 512, JSON_THROW_ON_ERROR);
+
+        if (isset($config['babylonPath']) && $config['babylonPath'] === "/api/babylonScript") {
+            $config['babylonPath'] = "/Babylon.js";
+        }
+
+        return $config;
     }
 
-    //we get the BabylonJS script directyle from the symfony server
+    // the babylon script will be served to the front end from home controller
     public function getBabylonScript(): string
     {
         if (!file_exists($this->babylonPath)) {

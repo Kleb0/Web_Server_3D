@@ -36,8 +36,10 @@ final class HomeController extends AbstractController
         return $this->json($this->configLoader->getConfig());
     }
 
-    #[Route('/api/script', name: 'api_script', methods: ['GET'])]
-    public function getScript(): Response
+
+    // this route will be used to fetch the babylon script from API by reading the file obtained by api_config
+    #[Route('/Babylon.js', name: 'serve_babylon', methods: ['GET'])]
+    public function serveBabylonScript(): Response
     {
         $scriptContent = $this->configLoader->getBabylonScript();
 
