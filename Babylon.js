@@ -66,97 +66,89 @@ const InitializeScene = async() => {
         const blueMaterial = new BABYLON.StandardMaterial("blueMaterial", scene);
         blueMaterial.diffuseColor = BABYLON.Color3.Blue();
 
-        // Load the glTF
-        BABYLON.SceneLoader.Append(
-                `/gltf/`, 
-                `blender_test.gltf?timestamp=${Date.now()}`,
-                scene, () => {
-                console.log("GLTF loaded successfully!");
 
-                scene.executeWhenReady(()=> {
-                    const cone = scene.getMeshByName("Cone");
-                    if(cone)
-                    {
-                        cone.material = blueMaterial;
-                        console.log("blue material applied to Cone");
-                    }
-                    else
-                    {
-                        console.error("Cone not found");
 
-                    }
-                })
+        // ------------------ 3D file loading ------------------ //
+        //get the path here 
 
-                scene.meshes.forEach((mesh) => {
-                    if (mesh.name.startsWith("Cube")) {
-                        mesh.material.backFaceCulling = false;
-                        mesh.physicsImpostor = new BABYLON.PhysicsImpostor(
-                            mesh,
-                            BABYLON.PhysicsImpostor.BoxImpostor, 
-                            { mass: 1, restitution: 0.2 }, 
+        try {
+
+            //we get the config from the API
+            const response = await fetch('/api/config');
+            if(!response.ok) throw new Error("Failed to fetch config");
+
+
+            //get the 3D file from the key 3DfilePath in the config json file
+            const configData = await response.json();
+            const gltfPath = configData["3DfilePath"];
+
+            if (!gltfPath) throw new Error("3DfilePath not found in config.json");
+
+            console.log(`Loading GLTF from ${gltfPath}`);
+
+            const fixedGltfPath = gltfPath.replace('/public', '');
+
+            BABYLON.SceneLoader.Append(
+                fixedGltfPath + `?timestamp=${Date.now()}`,
+                "",
+                scene,
+                () => {
+    
+                    scene.executeWhenReady(()=> {
+                        const cone = scene.getMeshByName("Cone");
+                        if(cone)
+                        {
+                            cone.material = blueMaterial;
+                            console.log("blue material applied to Cone");
+                        }
+                        else
+                        {
+                            console.error("Cone not found");
+    
+                        }
+                    })
+    
+                    scene.meshes.forEach((mesh) => {
+                        if (mesh.name.startsWith("Cube")) {
+                            mesh.material.backFaceCulling = false;
+                            mesh.physicsImpostor = new BABYLON.PhysicsImpostor(
+                                mesh,
+                                BABYLON.PhysicsImpostor.BoxImpostor, 
+                                { mass: 1, restitution: 0.2 }, 
+                                scene
+                            );
+                            mesh.checkCollisions = true; // Activer les collisions
+                            console.log(`Physics impostor applied to ${mesh.name}`);
+                        }
+                    });
+                    
+                    const plane = scene.getMeshByName("Plane");
+                    if (plane) {
+                        // Configure the physics impostor
+                        plane.material.backFaceCulling = false;
+                        plane.physicsImpostor = new BABYLON.PhysicsImpostor(
+                            plane,
+                            BABYLON.PhysicsImpostor.BoxImpostor, // Use BoxImpostor for a flat plane
+                            { mass: 0, restitution: 0.2 }, // Static object
                             scene
                         );
-                        mesh.checkCollisions = true; // Activer les collisions
-                        console.log(`Physics impostor applied to ${mesh.name}`);
+                        plane.checkCollisions = true; // Enable collision detection
+                        console.log("Plane loaded successfully! Physics enabled.");
+                    } else {
+                        console.error("Plane not found");
                     }
-                });
-                
-                const plane = scene.getMeshByName("Plane");
-                if (plane) {
-                    // Configure the physics impostor
-                    plane.material.backFaceCulling = false;
-                    plane.physicsImpostor = new BABYLON.PhysicsImpostor(
-                        plane,
-                        BABYLON.PhysicsImpostor.BoxImpostor, // Use BoxImpostor for a flat plane
-                        { mass: 0, restitution: 0.2 }, // Static object
-                        scene
-                    );
-                    plane.checkCollisions = true; // Enable collision detection
-                    console.log("Plane loaded successfully! Physics enabled.");
-                } else {
-                    console.error("Plane not found");
+                },         
+                null, (scene, message, exception) => {
+                    console.error( message, exception);
                 }
+            );
+        } catch (error) {
+            console.error("Failed to load the glTF:", error);           
 
-            },         
-            null, (scene, message, exception) => {
-                console.error( message, exception);
-            });
-        
+        }
 
-        // ---- as we are using physic now, this part is not needed anymore  ---- //
-        // let isAscending = false;
-        // let isDescending = false;
-        // const ascendSpeed = 0.2;
-
-        // const animateVerticalMovement = () => {
-        //     if (isAscending) {
-        //         camera.position.y += ascendSpeed;
-        //     } else if (isDescending) {
-        //         camera.position.y -= ascendSpeed;
-        //     }
-        // };
-
-        // window.addEventListener('keydown', (event) => {
-        //     if (event.key === "a" || event.key === "A") {
-        //         isAscending = true;
-        //     }
-        //     else if (event.key === "e" || event.key === "E") {
-        //         isDescending = true;
-        //     }
-
-        // });
-
-        // window.addEventListener('keyup', (event) => { 
-        //     if (event.key === "a" || event.key === "A") {
-        //         isAscending = false;
-        //     }
-
-        //     else if (event.key === "e" || event.key === "E") {
-        //         isDescending = false;
-        //     }
-        // });
-
-
+          // ---- additonal features ---- //
+          
         // Initial background color
         scene.clearColor = new BABYLON.Color4(0.8, 0.8, 0.8, 1);
 
@@ -227,42 +219,81 @@ const InitializeScene = async() => {
         return scene;
     };
 
-    // Enable pointer lock on click
-    const enablePointerLock = () => {
-        canvas.requestPointerLock =
-            canvas.requestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock;
+        // Enable pointer lock on click
+        const enablePointerLock = () => {
+            canvas.requestPointerLock =
+                canvas.requestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock;
 
-        if (canvas.requestPointerLock) {
-            canvas.requestPointerLock();
-        }
-    };
+            if (canvas.requestPointerLock) {
+                canvas.requestPointerLock();
+            }
+        };
 
-    canvas.addEventListener("click", enablePointerLock);
+        canvas.addEventListener("click", enablePointerLock);
 
-    // Handle pointer lock change
-    document.addEventListener("pointerlockchange", () => {
-        if (document.pointerLockElement === canvas) {
-            console.log("Pointer locked.");
-        } else {
-            console.log("Pointer unlocked.");
-        }
-    });
-
-    // Call the createScene function
-    createScene().then((scene) => {
-        engine.runRenderLoop(() => {
-            scene.render();
+        // Handle pointer lock change
+        document.addEventListener("pointerlockchange", () => {
+            if (document.pointerLockElement === canvas) {
+                console.log("Pointer locked.");
+            } else {
+                console.log("Pointer unlocked.");
+            }
         });
-    }).catch((error) => {
-        console.error("Failed to create the scene:", error);
-    });
 
-    // Resize the engine on window resize
-    window.addEventListener('resize', () => {
-        engine.resize();
-    });    
-};
+        // Call the createScene function
+        createScene().then((scene) => {
+            engine.runRenderLoop(() => {
+                scene.render();
+            });
+        }).catch((error) => {
+            console.error("Failed to create the scene:", error);
+        });
+
+        // Resize the engine on window resize
+        window.addEventListener('resize', () => {
+            engine.resize();
+        });    
+
+        //--- end of additional features --- //
+
+        return scene;
+    };
+ // ------------------ 3D file loading ------------------ //
 
 InitializeScene();
 
-// Get the canvas element
+
+        // ---- useless part  ---- //
+        // let isAscending = false;
+        // let isDescending = false;
+        // const ascendSpeed = 0.2;
+
+        // const animateVerticalMovement = () => {
+        //     if (isAscending) {
+        //         camera.position.y += ascendSpeed;
+        //     } else if (isDescending) {
+        //         camera.position.y -= ascendSpeed;
+        //     }
+        // };
+
+        // window.addEventListener('keydown', (event) => {
+        //     if (event.key === "a" || event.key === "A") {
+        //         isAscending = true;
+        //     }
+        //     else if (event.key === "e" || event.key === "E") {
+        //         isDescending = true;
+        //     }
+
+        // });
+
+        // window.addEventListener('keyup', (event) => { 
+        //     if (event.key === "a" || event.key === "A") {
+        //         isAscending = false;
+        //     }
+
+        //     else if (event.key === "e" || event.key === "E") {
+        //         isDescending = false;
+        //     }
+        // });
+
+        // ----- end of useless part ----- //

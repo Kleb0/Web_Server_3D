@@ -1,3 +1,4 @@
 {    
-    "babylonPath": "/Babylon.js"
+    "babylonPath": "/Babylon.js",
+    "3DfilePath": "/public/gltf/blender_chelou.gltf"
 }

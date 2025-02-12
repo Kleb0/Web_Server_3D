@@ -1,0 +1,26 @@
+{
+    "backgroundColor": "#ff0000",
+    "brightness": 1.5,
+    "instruction": [
+        "document.addEventListener(\"DOMContentLoaded\", function() {",
+        "    const canvas = document.getElementById(\"renderCanvas\");",
+        "    const engine = new BABYLON.Engine(canvas, true);",
+        "    const scene = new BABYLON.Scene(engine);",
+        "    scene.clearColor = BABYLON.Color3.FromHexString(\"#ff0000\");",
+        "",
+        "    const camera = new BABYLON.ArcRotateCamera(\"Camera\", Math.PI / 2, Math.PI / 2, 5, BABYLON.Vector3.Zero(), scene);",
+        "    camera.attachControl(canvas, true);",
+        "",
+        "    const light = new BABYLON.HemisphericLight(\"light\", new BABYLON.Vector3(0, 1, 0), scene);",
+        "    light.intensity = 1.5;",
+        "",
+        "    engine.runRenderLoop(() => {",
+        "        scene.render();",
+        "    });",
+        "",
+        "    window.addEventListener(\"resize\", () => {",
+        "        engine.resize();",
+        "    });",
+        "});"
+    ]
+}
