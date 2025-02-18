@@ -27,7 +27,7 @@ const InitializeScene = async() => {
     // Create the Babylon.js engine
     const engine = new BABYLON.Engine(canvas, true);
 
-    // Create the scene
+    // ------------ Scene creation ------------------ //
     const createScene = async () => {
         const scene = new BABYLON.Scene(engine);
 
@@ -73,27 +73,31 @@ const InitializeScene = async() => {
 
         try {
 
-            //we get the config from the API
-            const response = await fetch('/api/config');
-            if(!response.ok) throw new Error("Failed to fetch config");
+            // //we get the config from the API
+            // const response = await fetch('/api/config');
+            // if(!response.ok) throw new Error("Failed to fetch config");
 
 
-            //get the 3D file from the key 3DfilePath in the config json file
-            const configData = await response.json();
-            const gltfPath = configData["3DfilePath"];
+            // //get the 3D file from the key 3DfilePath in the config json file
+            // const configData = await response.json();
+            // const gltfPath = configData["3DfilePath"];
 
-            if (!gltfPath) throw new Error("3DfilePath not found in config.json");
+        
+            const gltfPath = window.sceneConfig["3DfilePath"];
 
-            console.log(`Loading GLTF from ${gltfPath}`);
+            console.log("Loading GLTF path from Twig:", gltfPath);
 
-            const fixedGltfPath = gltfPath.replace('/public', '');
+            if (!gltfPath || gltfPath.includes("{{")) {
+                throw new Error("Erreur: config['3DfilePath'] n'a pas été correctement injecté par Twig.");
+            }
 
             BABYLON.SceneLoader.Append(
-                fixedGltfPath + `?timestamp=${Date.now()}`,
+                gltfPath + `?timestamp=${Date.now()}`,
                 "",
                 scene,
                 () => {
     
+                    // ------------- Physics Impostors ------------------ //
                     scene.executeWhenReady(()=> {
                         const cone = scene.getMeshByName("Cone");
                         if(cone)
@@ -137,18 +141,27 @@ const InitializeScene = async() => {
                     } else {
                         console.error("Plane not found");
                     }
+
+                    // ------------------ End of Physics Impostors ------------------ //
                 },         
                 null, (scene, message, exception) => {
                     console.error( message, exception);
                 }
             );
-        } catch (error) {
+        } 
+        catch (error) {
             console.error("Failed to load the glTF:", error);           
 
         }
 
-          // ---- additonal features ---- //
+        // ---- end of 3D file loading ------------------ //
+
+    //---- end of scene creation ------------------------------- //
+
+    // ---- additonal features --------------------------------------- //
           
+
+    // --------- Background color and brightness control ------------------ //    
         // Initial background color
         scene.clearColor = new BABYLON.Color4(0.8, 0.8, 0.8, 1);
 
@@ -159,6 +172,7 @@ const InitializeScene = async() => {
         });
 
         // Initialize Pickr (color picker) for background color
+        
         const pickr = Pickr.create({
             el: '#color-picker',
             theme: 'nano', 
@@ -175,14 +189,16 @@ const InitializeScene = async() => {
             }
         });
 
-        // Handle background color changes
         pickr.on('change', (color) => {
             const rgba = color.toRGBA(); 
             const [r, g, b, a] = rgba; // Decompose RGBA
             scene.clearColor = new BABYLON.Color4(r / 255, g / 255, b / 255, a || 1); // Set clearColor
         });
 
-        // scene.onBeforeRenderObservable.add(animateVerticalMovement);
+    // ---------------- end of background color and brightness control ------------------ //
+
+
+    // ----------------------- Raycasting Logic ------------------ //
 
         let lastHighlightedMesh = null;
 
@@ -219,6 +235,11 @@ const InitializeScene = async() => {
         return scene;
     };
 
+    // ------------------ End of Raycasting Logic ------------------ //
+
+
+    // --------- Enable Pointer Lock ------------------ //
+
         // Enable pointer lock on click
         const enablePointerLock = () => {
             canvas.requestPointerLock =
@@ -240,8 +261,18 @@ const InitializeScene = async() => {
             }
         });
 
+    // --------- End of Pointer Lock ------------------ //
+    
+    
+    // --------- Create the Scene ------------------ //
+
         // Call the createScene function
-        createScene().then((scene) => {
+    createScene().then((scene) => {
+            if(!scene)
+                {
+                    throw new Error("Failed to create the scene");
+            }
+
             engine.runRenderLoop(() => {
                 scene.render();
             });
@@ -253,12 +284,9 @@ const InitializeScene = async() => {
         window.addEventListener('resize', () => {
             engine.resize();
         });    
-
-        //--- end of additional features --- //
-
-        return scene;
+    //--- end of additional features ------------------------------- //
     };
- // ------------------ 3D file loading ------------------ //
+ // ------------------ 3D file loading End ------------------ //
 
 InitializeScene();
 
@@ -297,3 +325,5 @@ InitializeScene();
         // });
 
         // ----- end of useless part ----- //
+
+

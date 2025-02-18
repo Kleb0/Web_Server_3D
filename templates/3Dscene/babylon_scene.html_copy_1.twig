@@ -39,36 +39,36 @@
     <canvas id="renderCanvas" style="width: 100%; height: 100%;"></canvas>
 
 
-
     <!-- with this method the script is executed from the server memory. We use a blob object created from the script content
     obtained by API fetching instead of the real script, the script src is then the blob object URL. The blob act like a clone 
     protecting the real script -->
     <script>
         document.addEventListener("DOMContentLoaded", async function() {
             try {
-                // inject the config JSON into the window object
-                window.sceneConfig = {{ config|json_encode|raw }};
+                // get the script content from the server config via API_config
+                const response = await fetch('/api/config');
+                if (!response.ok) throw new Error("Failed to fetch config");
 
-                console.log("Config JSON injecté par Twig:", window.sceneConfig);
-                console.log("GLTF Path (window.sceneConfig):", window.sceneConfig["3DfilePath"]);
-                console.log("Babylon Path (window.sceneConfig):", window.sceneConfig["babylonPath"]);
 
-                if (!window.sceneConfig.babylonPath) throw new Error("No script path found in config");
-                if (!window.sceneConfig["3DfilePath"]) throw new Error("3DfilePath not found in config.json");
+
+                //
+                //
+                const config = await response.json();
+                const scriptPath = config.babylonPath;
+
+                if(!scriptPath) throw new Error("No script path found in config");
 
 
                 //get the injected script from the Home controller                    
-                const scriptContent = {{ scriptContent|raw }};
-    
+                const scriptContent = {{ scriptContent|raw }};      
+
                 // create a blob object from the script content
                 const blob = new Blob([scriptContent], { type: 'application/javascript' });
                 const scriptUrl = URL.createObjectURL(blob);
                 const script = document.createElement("script");
                 script.src = scriptUrl;
                 document.body.appendChild(script);
-
-            } 
-            catch (error) {
+            } catch (error) {
                 console.error("Error loading script:", error);
             }
         });

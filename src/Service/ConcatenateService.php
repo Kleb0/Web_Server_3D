@@ -46,7 +46,8 @@ class ConcatenateService
 
         //get directly the gltf path from the config.json file
         BABYLON.SceneLoader.Append("{$gltfPath}?timestamp=" + Date.now(), "", scene, () => {
-            console.log("GLTF loaded successfully from '{$gltfPath}'");
+            echo "INFO : GLTF loaded successfully from '{$gltfPath}'";
+            // console.log("GLTF loaded successfully from '{$gltfPath}'");
         }, null, (scene, message, exception) => {
             console.error(message, exception);
         });
