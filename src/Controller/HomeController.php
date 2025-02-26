@@ -8,18 +8,18 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Service\ConfigLoader;
-// use App\Service\ConcatenateService;
-
+use App\Service\CreateBabylonFileService;
 final class HomeController extends AbstractController
 {
 
     private ConfigLoader $configLoader;
-    // private ConcatenateService $concatenateService;
+    private CreateBabylonFileService $createBabylonFileService;
 
-    public function __construct(ConfigLoader $configLoader)
+    public function __construct(ConfigLoader $configLoader, CreateBabylonFileService $createBabylonFileService)
     {
         $this->configLoader = $configLoader;
-        // $this->concatenateService = $concatenateService;
+        $this->createBabylonFileService = $createBabylonFileService;
+        $this->createBabylonFileService->createBaseFile();
     }
     
     #[Route('/', name: 'app_home')]
@@ -39,26 +39,7 @@ final class HomeController extends AbstractController
         ]);
     }
 
-    // we will not use this route anymore but still find a way to return the config
 
-    // // #[Route('/api/config', name: 'api_config', methods: ['GET'])]
-    // public function getConfigTest(): JsonResponse
-    // {
-    //     return $this->json($this->configLoader->getConfig());
-    // }
-
-    // we will not use this route anymore too
-
-    // this route will be used to fetch the babylon script from API by reading the file obtained by api_config
-    // #[Route('/Babylon.js', name: 'serve_babylon', methods: ['GET'])]
-    // public function serveBabylonScript(): Response
-    // {
-    //     $scriptContent = $this->configLoader->getBabylonScript();
-
-    //     return new Response($scriptContent, 200, [
-    //         'Content-Type' => 'application/javascript',
-    //     ]);
-    // }
 
     #[Route('/public/gltf/{filename}', name: 'serve_gltf', methods: ['GET'])]
     public function serveGltfFile(string $filename): Response

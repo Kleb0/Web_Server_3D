@@ -8,11 +8,12 @@ class ConfigLoader
 {
     private string $configPath;
     private string $babylonPath;
+    private string $configFile;
 
     public function __construct(string $projectDir)
     {
         $this->configPath = $projectDir . '/src/BabylonJs/config/config.json';
-        $this->babylonPath = $projectDir . '/Babylon.js';
+        $this->babylonPath = $projectDir . '/GeneratedBabylon.js';
     }
 
     public function getConfig(): array

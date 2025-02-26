@@ -48,8 +48,14 @@
             try {
                 // inject the config JSON into the window object
                 window.sceneConfig = {{ config|json_encode|raw }};
+                console.log("Config JSON injected by Twig:", window.sceneConfig);
 
-                console.log("Config JSON injecté par Twig:", window.sceneConfig);
+                const scriptPath = window.sceneConfig.babylonPath;
+
+                if(!scriptPath) throw new Error("No script path found in config");
+                else console.log("Script path found in config:", scriptPath);
+
+            
                 console.log("GLTF Path (window.sceneConfig):", window.sceneConfig["3DfilePath"]);
                 console.log("Babylon Path (window.sceneConfig):", window.sceneConfig["babylonPath"]);
 
@@ -67,9 +73,11 @@
                 script.src = scriptUrl;
                 document.body.appendChild(script);
 
+                console.log("✅ Script injected successfully");
+
             } 
             catch (error) {
-                console.error("Error loading script:", error);
+                console.error("❌ Error loading script:", error);
             }
         });
     </script>
