@@ -1,4 +1,6 @@
 {    
     "babylonPath": "/GeneratedBabylon.js",
-    "3DfilePath": "/public/gltf/blender_chelou.gltf"
+    "babylonPath2": "/GeneratedTeleportTestBabylon.js",
+    "3DfilePath": "/public/gltf/blender_chelou.gltf",
+    "3DfilePath2" : "/public/gltf/blender_teleport_test.gltf"
 }

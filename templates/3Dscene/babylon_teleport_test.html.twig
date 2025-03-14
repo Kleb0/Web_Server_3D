@@ -51,17 +51,17 @@
                 window.sceneConfig = {{ config|json_encode|raw }};
                 console.log("Config JSON injected by Twig:", window.sceneConfig);
 
-                const scriptPath = window.sceneConfig.babylonPath;
+                const scriptPath = window.sceneConfig.babylonPath2;
 
                 if(!scriptPath) throw new Error("No script path found in config");
                 else console.log("Script path found in config:", scriptPath);
 
             
-                console.log("GLTF Path (window.sceneConfig):", window.sceneConfig["3DfilePath"]);
-                console.log("Babylon Path (window.sceneConfig):", window.sceneConfig["babylonPath"]);
+                console.log("GLTF Path (window.sceneConfig):", window.sceneConfig["3DfilePath2"]);
+                console.log("Babylon Path (window.sceneConfig):", window.sceneConfig["babylonPath2"]);
 
                 if (!window.sceneConfig.babylonPath) throw new Error("No script path found in config");
-                if (!window.sceneConfig["3DfilePath"]) throw new Error("3DfilePath not found in config.json");
+                if (!window.sceneConfig["3DfilePath2"]) throw new Error("3DfilePath not found in config.json");
 
 
                 //get the injected script from the Home controller                    

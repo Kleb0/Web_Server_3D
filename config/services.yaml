@@ -30,6 +30,10 @@ services:
 
     App\Service\CreateBabylonFileService:
         arguments:
+            $projectDir: '%kernel.project_dir%'
+
+    App\Service\CreateBabylonFileTeleportTestService:
+        arguments:
             $projectDir: '%kernel.project_dir%'        
 
     # add more service definitions when explicit configuration is needed

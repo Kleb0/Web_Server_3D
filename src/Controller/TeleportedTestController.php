@@ -8,34 +8,32 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Service\ConfigLoader;
-use App\Service\CreateBabylonFileService;
-final class HomeController extends AbstractController
+use App\Service\CreateBabylonFileTeleportTestService;
+
+final class TeleportedTestController  extends AbstractController 
 {
 
     private ConfigLoader $configLoader;
-    private CreateBabylonFileService $createBabylonFileService;
+    private CreateBabylonFileTeleportTestService $createBabylonFileService;
 
-    public function __construct(ConfigLoader $configLoader, CreateBabylonFileService $createBabylonFileService)
+    public function __construct(ConfigLoader $configLoader, CreateBabylonFileTeleportTestService $createBabylonFileTeleportTestService)
     {
         $this->configLoader = $configLoader;
-        $this->createBabylonFileService = $createBabylonFileService;
-        $this->createBabylonFileService->createBaseFile();
+        $this->createBabylonFileService = $createBabylonFileTeleportTestService;
     }
-    
-    #[Route('/', name: 'app_home')]
-    public function index(): Response
-    {
-        // $this->concatenateService->concatenate();
-        $config = $this->configLoader->getConfig();
-        $scriptContent = $this->configLoader->getBabylonScript();
-        $scriptPath = $config['babylonPath'];
 
-        return $this->render('3Dscene/babylon_scene.html.twig', [
-            'controller_name' => 'HomeController',
+    #[Route('/teleport-test', name: 'teleport_test')]
+    public function teleportTest(): Response
+    {
+        $config = $this->configLoader->getConfig();
+        $scriptContent = $this->configLoader->getBabylonScript2();
+        $scriptPath = $config['babylonPath2'];
+
+        return $this->render('3Dscene/babylon_teleport_test.html.twig', [
+            'controller_name' => 'TeleportedTestController',
             'scriptPath' => $scriptPath,
             'scriptContent' => json_encode($scriptContent),
-            'config' => $config            
-            
+            'config' => $config
         ]);
     }
 

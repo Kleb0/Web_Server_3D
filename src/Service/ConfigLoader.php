@@ -8,12 +8,14 @@ class ConfigLoader
 {
     private string $configPath;
     private string $babylonPath;
+    private string $babylonPath2;
     private string $configFile;
 
     public function __construct(string $projectDir)
     {
         $this->configPath = $projectDir . '/src/BabylonJs/config/config.json';
         $this->babylonPath = $projectDir . '/GeneratedBabylon.js';
+        $this->babylonPath2 = $projectDir . '/GeneratedTeleportTestBabylon.js';
     }
 
     public function getConfig(): array
@@ -24,10 +26,6 @@ class ConfigLoader
 
         $configContent = file_get_contents($this->configPath);
         $config = json_decode($configContent, true, 512, JSON_THROW_ON_ERROR);
-
-        if (isset($config['babylonPath']) && $config['babylonPath'] === "/api/babylonScript") {
-            $config['babylonPath'] = "/Babylon.js";
-        }
 
         return $config;
     }
@@ -40,5 +38,14 @@ class ConfigLoader
         }
 
         return file_get_contents($this->babylonPath);
+    }
+
+    public function getBabylonScript2(): string
+    {
+        if (!file_exists($this->babylonPath2)) {
+            throw new \RuntimeException("BabylonJs file not found: {$this->babylonPath2}");
+        }
+
+        return file_get_contents($this->babylonPath2);
     }
 }

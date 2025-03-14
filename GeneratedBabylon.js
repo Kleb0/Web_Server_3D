@@ -23,8 +23,6 @@ const InitializeScene = async() => {
 
         // Add a camera with FPS style controls
         const camera = new BABYLON.UniversalCamera("FPSCamera", new BABYLON.Vector3(0.5, 1.5, 0.5), scene);
-        camera.attachControl(canvas, true);
-        
          
         // Assign camera settings from config the camera 
           if (config.camera) {
@@ -40,7 +38,8 @@ const InitializeScene = async() => {
         //enable physics on camera
         camera.checkCollisions = true;
         camera.applyGravity = true;
-        camera.ellipsoid = new BABYLON.Vector3(0.5, 1.5, 0.5);
+        camera.ellipsoid = new BABYLON.Vector3(1, 1, 1);
+        camera.attachControl(canvas, true);
 
         // Add a hemispheric light
         const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0), scene);
@@ -103,22 +102,43 @@ const InitializeScene = async() => {
                         }
                     });
                     
-                    const plane = scene.getMeshByName("Plane");
-                    if (plane) {
+                    const ground = scene.getMeshByName("Ground");
+                    if (ground) {
                         // Configure the physics impostor
-                        plane.material.backFaceCulling = false;
-                        plane.physicsImpostor = new BABYLON.PhysicsImpostor(
-                            plane,
+                        ground.material.backFaceCulling = false;
+                        ground.physicsImpostor = new BABYLON.PhysicsImpostor(
+                            ground,
                             BABYLON.PhysicsImpostor.BoxImpostor, // Use BoxImpostor for a flat plane
                             { mass: 0, restitution: 0.2 }, // Static object
                             scene
                         );
-                        plane.checkCollisions = true; // Enable collision detection
+                        ground.checkCollisions = true; // Enable collision detection
                         console.log("Plane loaded successfully! Physics enabled.");
                     } else {
                         console.error("Plane not found");
                     }
 
+                    const teleport = scene.getMeshByName("teleport");
+                    if (teleport)
+                    {
+                        console.log("Teleport found");
+                        teleport.material = redMaterial;
+                        teleport.physicsImpostor = new BABYLON.PhysicsImpostor(
+                            teleport,
+                            BABYLON.PhysicsImpostor.BoxImpostor,
+                            { mass: 0, restitution: 0.2 },
+                            scene
+                        );
+                        teleport.checkCollisions = true;
+                        console.log("Physics impostor applied to teleport");
+                        
+
+       
+                    } else {
+                        console.error("Teleport not found");
+                    } 
+
+         
                     // ------------------ End of Physics Impostors ------------------ //
                 },         
                 null, (scene, message, exception) => {
@@ -135,8 +155,7 @@ const InitializeScene = async() => {
 
     //---- end of scene creation ------------------------------- //
 
-   // ---- additonal features --------------------------------------- //
-          
+   // ---- additonal features --------------------------------------- //          
 
     // --------- Background color and brightness control ------------------ //    
         // Initial background color
@@ -195,6 +214,7 @@ const InitializeScene = async() => {
                     }
                     hit.pickedMesh.material = redMaterial;
                     lastHighlightedMesh = hit.pickedMesh;
+                    // alert("You have touched on the Cone");
                 }
             } 
             else if (lastHighlightedMesh) 
@@ -203,16 +223,55 @@ const InitializeScene = async() => {
                 lastHighlightedMesh.material = blueMaterial;
                 lastHighlightedMesh = null;
             }
-        };        
+        };  
+        
+        // ------------------ End of Raycasting Logic ------------------ //  
+        
+        // ----------- Check Collision with Teleport Logic ------------------ //
+
+
+        const checkCollisionWithTeleport = () => {
+            const teleport = scene.getMeshByName("teleport");
+            
+            if (teleport){
+                // alert("Physics Impostor applied to cameraMesh");
+                const cameraPosition = camera.position;
+                const teleportPosition = teleport.position;
+
+                // console.log("Teleport Position:", teleportPosition);
+
+                const distance = BABYLON.Vector3.Distance(cameraPosition, teleportPosition);
+                // console.log("Distance to teleport:", distance);
+                if (distance < 20) {
+                    const forward = camera.getForwardRay().direction.clone();
+                    forward.normalize();
+
+                    const toTeleport = teleportPosition.subtract(cameraPosition).normalize();
+
+                    const dot = BABYLON.Vector3.Dot(forward, toTeleport);
+                    // console.log("Dot product:", dot);
+                    if (dot < 0.6) {
+                        alert("You have been teleported");
+                        window.location.href = '/teleport-test';
+                    }
+                }
+            }
+        };
+    
+
+
+
+    // ----------- End of Check Collision with Teleport Logic ------------------ //
 
         scene.onBeforeRenderObservable.add(() => {
             checkRaycast();
+            checkCollisionWithTeleport();
         });
 
         return scene;
     };
 
-    // ------------------ End of Raycasting Logic ------------------ //
+
 
 
     // --------- Enable Pointer Lock ------------------ //
@@ -251,6 +310,10 @@ const InitializeScene = async() => {
                 {
                     throw new Error("Failed to create the scene");
             }
+
+            // scene.debugLayer.show({
+            //     embedMode: false
+            // });
 
             engine.runRenderLoop(() => {
                 scene.render();

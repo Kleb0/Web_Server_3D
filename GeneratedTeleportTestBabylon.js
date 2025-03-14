@@ -1,24 +1,8 @@
-<?php
+const InitializeScene = async() => {
+    const canvas = document.getElementById('renderCanvas');
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
 
-namespace App\Service;
-
-use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
-
-class CreateBabylonFileService
-{
-    private Filesystem $filesystem;
-    private string $projectDir;
-
-    public function __construct(string $projectDir)
-    {
-        $this->filesystem = new Filesystem();
-        $this->projectDir = $projectDir;
-    }
-
-    public function configInit(): string
-    {
-        return <<<JS
     const config = {
         camera: {
             speed: 0.2,
@@ -29,19 +13,8 @@ class CreateBabylonFileService
             angularSensibility: 3000
             }
         };        
-JS;
-    }
 
-    public function configEngine(): string
-    {
-        return <<<JS
     const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
-JS;
-    }
-
-    public function createScene(): string
-    {
-        return <<<JS
          const createScene = async () => {
         const scene = new BABYLON.Scene(engine);
 
@@ -86,7 +59,7 @@ JS;
 
         try {
         
-            const gltfPath = window.sceneConfig["3DfilePath"];
+            const gltfPath = window.sceneConfig["3DfilePath2"];
 
             console.log("Loading GLTF path from Twig:", gltfPath);
 
@@ -95,25 +68,12 @@ JS;
             }
 
             BABYLON.SceneLoader.Append(
-                gltfPath + `?timestamp=\${Date.now()}`,
+                gltfPath + `?timestamp=${Date.now()}`,
                 "",
                 scene,
                 () => {
     
                     // ------------- Physics Impostors ------------------ //
-                    scene.executeWhenReady(()=> {
-                        const cone = scene.getMeshByName("Cone");
-                        if(cone)
-                        {
-                            cone.material = blueMaterial;
-                            console.log("blue material applied to Cone");
-                        }
-                        else
-                        {
-                            console.error("Cone not found");
-    
-                        }
-                    })
     
                     scene.meshes.forEach((mesh) => {
                         if (mesh.name.startsWith("Cube")) {
@@ -125,7 +85,7 @@ JS;
                                 scene
                             );
                             mesh.checkCollisions = true; // Activer les collisions
-                            console.log(`Physics impostor applied to \${mesh.name}`);
+                            console.log(`Physics impostor applied to ${mesh.name}`);
                         }
                     });
                     
@@ -140,30 +100,12 @@ JS;
                             scene
                         );
                         ground.checkCollisions = true; // Enable collision detection
-                        console.log("Plane loaded successfully! Physics enabled.");
+                        console.log("Ground loaded successfully! Physics enabled.");
                     } else {
-                        console.error("Plane not found");
+                        console.error("Ground not found");
                     }
 
-                    const teleport = scene.getMeshByName("teleport");
-                    if (teleport)
-                    {
-                        console.log("Teleport found");
-                        teleport.material = redMaterial;
-                        teleport.physicsImpostor = new BABYLON.PhysicsImpostor(
-                            teleport,
-                            BABYLON.PhysicsImpostor.BoxImpostor,
-                            { mass: 0, restitution: 0.2 },
-                            scene
-                        );
-                        teleport.checkCollisions = true;
-                        console.log("Physics impostor applied to teleport");
-                        
-
-       
-                    } else {
-                        console.error("Teleport not found");
-                    } 
+                    
 
          
                     // ------------------ End of Physics Impostors ------------------ //
@@ -225,75 +167,20 @@ JS;
 
         let lastHighlightedMesh = null;
 
-        const checkRaycast = () => {
-           
-            //declare the raycast
-            const ray = camera.getForwardRay();
         
-            //launch the raycast by declaring a collision with it
-            const hit = scene.pickWithRay(ray);
-        
-            if (hit.pickedMesh && hit.pickedMesh.name === "Cone") {
-                if (lastHighlightedMesh !== hit.pickedMesh) {
-                    
-                    if (lastHighlightedMesh) {
-                        lastHighlightedMesh.material = blueMaterial; //reset the last mesh
-                    }
-                    hit.pickedMesh.material = redMaterial;
-                    lastHighlightedMesh = hit.pickedMesh;
-                    // alert("You have touched on the Cone");
-                }
-            } 
-            else if (lastHighlightedMesh) 
-            {
-                // if there is a last mesh highlighted, reset it
-                lastHighlightedMesh.material = blueMaterial;
-                lastHighlightedMesh = null;
-            }
-        };  
         
         // ------------------ End of Raycasting Logic ------------------ //  
         
         // ----------- Check Collision with Teleport Logic ------------------ //
-
-
-        const checkCollisionWithTeleport = () => {
-            const teleport = scene.getMeshByName("teleport");
-            
-            if (teleport){
-                // alert("Physics Impostor applied to cameraMesh");
-                const cameraPosition = camera.position;
-                const teleportPosition = teleport.position;
-
-                // console.log("Teleport Position:", teleportPosition);
-
-                const distance = BABYLON.Vector3.Distance(cameraPosition, teleportPosition);
-                // console.log("Distance to teleport:", distance);
-                if (distance < 20) {
-                    const forward = camera.getForwardRay().direction.clone();
-                    forward.normalize();
-
-                    const toTeleport = teleportPosition.subtract(cameraPosition).normalize();
-
-                    const dot = BABYLON.Vector3.Dot(forward, toTeleport);
-                    // console.log("Dot product:", dot);
-                    if (dot < 0.6) {
-                        alert("You have been teleported");
-                        window.location.href = '/teleport-test';
-                    }
-                }
-            }
-        };
     
 
 
 
     // ----------- End of Check Collision with Teleport Logic ------------------ //
 
-        scene.onBeforeRenderObservable.add(() => {
-            checkRaycast();
-            checkCollisionWithTeleport();
-        });
+        // scene.onBeforeRenderObservable.add(() => {
+        //     checkRaycast();
+        // });
 
         return scene;
     };
@@ -357,55 +244,6 @@ JS;
  // ------------------ 3D file loading End ------------------ //
 
     
-JS;
-    }
-
-     public function createTestFile(): void
-     {
-         $filePath = $this->projectDir . '/test.js';
-     
-         $fileContent = <<<JS
-     console.log("Hello from Babylon.js");
-     JS;
-     
-         try {
-             $this->filesystem->dumpFile($filePath, $fileContent);
-         } catch (IOExceptionInterface $exception) {
-             throw new \RuntimeException('An error occurred while creating the file: ' . $exception->getMessage());
-         }
-     }
-
-
-    public function createBaseFile(): void
-    {
-
-        $filePath =$this->projectDir. '/GeneratedBabylon.js';
-        $configInit = $this->configInit();
-        $configEngine = $this->configEngine();
-        $createScene = $this->createScene();
-       
-
-        $fileContent = <<<JS
-const InitializeScene = async() => {
-    const canvas = document.getElementById('renderCanvas');
-    canvas.style.width = "100%";
-    canvas.style.height = "100%";
-
-$configInit
-
-$configEngine
-$createScene
     }
 
 InitializeScene();
-
-JS;
-
-        try {
-            $this->filesystem->dumpFile($filePath, $fileContent);
-        } catch (IOExceptionInterface $exception) {
-            throw new \RuntimeException('An error occurred while creating the file: ' . $exception->getMessage());
-        }
-      
-    }
-}

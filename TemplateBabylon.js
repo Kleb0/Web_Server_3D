@@ -1,24 +1,8 @@
-<?php
-
-namespace App\Service;
-
-use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
-
-class CreateBabylonFileService
-{
-    private Filesystem $filesystem;
-    private string $projectDir;
-
-    public function __construct(string $projectDir)
-    {
-        $this->filesystem = new Filesystem();
-        $this->projectDir = $projectDir;
-    }
-
-    public function configInit(): string
-    {
-        return <<<JS
+const InitializeScene = async() => {
+    const canvas = document.getElementById('renderCanvas');
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
+    
     const config = {
         camera: {
             speed: 0.2,
@@ -27,22 +11,14 @@ class CreateBabylonFileService
             keysLeft: [81],   // Q
             keysRight: [68],  // D
             angularSensibility: 3000
-            }
-        };        
-JS;
-    }
+        }
+    };
 
-    public function configEngine(): string
-    {
-        return <<<JS
-    const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
-JS;
-    }
+    // Create the Babylon.js engine
+    const engine = new BABYLON.Engine(canvas, true);
 
-    public function createScene(): string
-    {
-        return <<<JS
-         const createScene = async () => {
+    // ------------ Scene creation ------------------ //
+    const createScene = async () => {
         const scene = new BABYLON.Scene(engine);
 
         //scene physics
@@ -50,6 +26,8 @@ JS;
 
         // Add a camera with FPS style controls
         const camera = new BABYLON.UniversalCamera("FPSCamera", new BABYLON.Vector3(0.5, 1.5, 0.5), scene);
+        camera.attachControl(canvas, true);
+        
          
         // Assign camera settings from config the camera 
           if (config.camera) {
@@ -65,8 +43,7 @@ JS;
         //enable physics on camera
         camera.checkCollisions = true;
         camera.applyGravity = true;
-        camera.ellipsoid = new BABYLON.Vector3(1, 1, 1);
-        camera.attachControl(canvas, true);
+        camera.ellipsoid = new BABYLON.Vector3(0.5, 1.5, 0.5);
 
         // Add a hemispheric light
         const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0), scene);
@@ -95,7 +72,7 @@ JS;
             }
 
             BABYLON.SceneLoader.Append(
-                gltfPath + `?timestamp=\${Date.now()}`,
+                gltfPath + `?timestamp=${Date.now()}`,
                 "",
                 scene,
                 () => {
@@ -125,7 +102,7 @@ JS;
                                 scene
                             );
                             mesh.checkCollisions = true; // Activer les collisions
-                            console.log(`Physics impostor applied to \${mesh.name}`);
+                            console.log(`Physics impostor applied to ${mesh.name}`);
                         }
                     });
                     
@@ -135,37 +112,16 @@ JS;
                         ground.material.backFaceCulling = false;
                         ground.physicsImpostor = new BABYLON.PhysicsImpostor(
                             ground,
-                            BABYLON.PhysicsImpostor.BoxImpostor, // Use BoxImpostor for a flat plane
+                            BABYLON.PhysicsImpostor.BoxImpostor, // Use BoxImpostor for a flat ground
                             { mass: 0, restitution: 0.2 }, // Static object
                             scene
                         );
                         ground.checkCollisions = true; // Enable collision detection
-                        console.log("Plane loaded successfully! Physics enabled.");
+                        console.log("Ground loaded successfully! Physics enabled.");
                     } else {
-                        console.error("Plane not found");
+                        console.error("Ground not found");
                     }
 
-                    const teleport = scene.getMeshByName("teleport");
-                    if (teleport)
-                    {
-                        console.log("Teleport found");
-                        teleport.material = redMaterial;
-                        teleport.physicsImpostor = new BABYLON.PhysicsImpostor(
-                            teleport,
-                            BABYLON.PhysicsImpostor.BoxImpostor,
-                            { mass: 0, restitution: 0.2 },
-                            scene
-                        );
-                        teleport.checkCollisions = true;
-                        console.log("Physics impostor applied to teleport");
-                        
-
-       
-                    } else {
-                        console.error("Teleport not found");
-                    } 
-
-         
                     // ------------------ End of Physics Impostors ------------------ //
                 },         
                 null, (scene, message, exception) => {
@@ -182,7 +138,8 @@ JS;
 
     //---- end of scene creation ------------------------------- //
 
-   // ---- additonal features --------------------------------------- //          
+    // ---- additonal features --------------------------------------- //
+          
 
     // --------- Background color and brightness control ------------------ //    
         // Initial background color
@@ -241,7 +198,6 @@ JS;
                     }
                     hit.pickedMesh.material = redMaterial;
                     lastHighlightedMesh = hit.pickedMesh;
-                    // alert("You have touched on the Cone");
                 }
             } 
             else if (lastHighlightedMesh) 
@@ -250,55 +206,16 @@ JS;
                 lastHighlightedMesh.material = blueMaterial;
                 lastHighlightedMesh = null;
             }
-        };  
-        
-        // ------------------ End of Raycasting Logic ------------------ //  
-        
-        // ----------- Check Collision with Teleport Logic ------------------ //
-
-
-        const checkCollisionWithTeleport = () => {
-            const teleport = scene.getMeshByName("teleport");
-            
-            if (teleport){
-                // alert("Physics Impostor applied to cameraMesh");
-                const cameraPosition = camera.position;
-                const teleportPosition = teleport.position;
-
-                // console.log("Teleport Position:", teleportPosition);
-
-                const distance = BABYLON.Vector3.Distance(cameraPosition, teleportPosition);
-                // console.log("Distance to teleport:", distance);
-                if (distance < 20) {
-                    const forward = camera.getForwardRay().direction.clone();
-                    forward.normalize();
-
-                    const toTeleport = teleportPosition.subtract(cameraPosition).normalize();
-
-                    const dot = BABYLON.Vector3.Dot(forward, toTeleport);
-                    // console.log("Dot product:", dot);
-                    if (dot < 0.6) {
-                        alert("You have been teleported");
-                        window.location.href = '/teleport-test';
-                    }
-                }
-            }
-        };
-    
-
-
-
-    // ----------- End of Check Collision with Teleport Logic ------------------ //
+        };        
 
         scene.onBeforeRenderObservable.add(() => {
             checkRaycast();
-            checkCollisionWithTeleport();
         });
 
         return scene;
     };
 
-
+    // ------------------ End of Raycasting Logic ------------------ //
 
 
     // --------- Enable Pointer Lock ------------------ //
@@ -328,19 +245,16 @@ JS;
 
 
     // ------------- end of additional features ------------------------------- //
-
-        // --------- Create the Scene ------------------ //
+    
+    
+    // --------- Create the Scene ------------------ //
 
         // Call the createScene function
-        createScene().then((scene) => {
+    createScene().then((scene) => {
             if(!scene)
                 {
                     throw new Error("Failed to create the scene");
             }
-
-            // scene.debugLayer.show({
-            //     embedMode: false
-            // });
 
             engine.runRenderLoop(() => {
                 scene.render();
@@ -353,59 +267,8 @@ JS;
         window.addEventListener('resize', () => {
             engine.resize();
         });    
-
+   
+    };
  // ------------------ 3D file loading End ------------------ //
 
-    
-JS;
-    }
-
-     public function createTestFile(): void
-     {
-         $filePath = $this->projectDir . '/test.js';
-     
-         $fileContent = <<<JS
-     console.log("Hello from Babylon.js");
-     JS;
-     
-         try {
-             $this->filesystem->dumpFile($filePath, $fileContent);
-         } catch (IOExceptionInterface $exception) {
-             throw new \RuntimeException('An error occurred while creating the file: ' . $exception->getMessage());
-         }
-     }
-
-
-    public function createBaseFile(): void
-    {
-
-        $filePath =$this->projectDir. '/GeneratedBabylon.js';
-        $configInit = $this->configInit();
-        $configEngine = $this->configEngine();
-        $createScene = $this->createScene();
-       
-
-        $fileContent = <<<JS
-const InitializeScene = async() => {
-    const canvas = document.getElementById('renderCanvas');
-    canvas.style.width = "100%";
-    canvas.style.height = "100%";
-
-$configInit
-
-$configEngine
-$createScene
-    }
-
 InitializeScene();
-
-JS;
-
-        try {
-            $this->filesystem->dumpFile($filePath, $fileContent);
-        } catch (IOExceptionInterface $exception) {
-            throw new \RuntimeException('An error occurred while creating the file: ' . $exception->getMessage());
-        }
-      
-    }
-}
