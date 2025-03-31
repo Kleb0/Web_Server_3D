@@ -20,6 +20,7 @@ final class TeleportedTestController  extends AbstractController
     {
         $this->configLoader = $configLoader;
         $this->createBabylonFileService = $createBabylonFileTeleportTestService;
+        $this->createBabylonFileService->createBaseFile();
     }
 
     #[Route('/teleport-test', name: 'teleport_test')]
